@@ -13,8 +13,11 @@ public class Player : MonoBehaviour
     public float runSpeed = 15f;
     public float acceleration = 0.5f;
     public float decceleration = 1f;
+    public float strafeRunAngle = 45.0f;
+    public float strafeAngle = 90.0f;
 
-    private State state = State.Idle;
+    private RunState runState = RunState.Idle;
+    private StrafeState strafeState = StrafeState.None;
 
     private void Awake()
     {
@@ -22,11 +25,18 @@ public class Player : MonoBehaviour
         animator = GetComponent<Animator>();
     }
 
-    private enum State
+    private enum RunState
     {
         Idle,
         Walking,
         Running
+    }
+
+    private enum StrafeState
+    {
+        None,
+        Right,
+        Left
     }
 
     // Update is called once per frame
@@ -36,30 +46,30 @@ public class Player : MonoBehaviour
         {
             if (Input.GetKey(KeyCode.LeftShift))
             {
-                state = State.Running;
+                runState = RunState.Running;
             }
             else
             {
-                state = State.Walking;
+                runState = RunState.Walking;
             }
         }
         else
         {
-            state = State.Idle;
+            runState = RunState.Idle;
         }
     }
 
     void FixedUpdate()
     {
-        switch(state)
+        switch(runState)
         {
-            case State.Walking:
+            case RunState.Walking:
                 Walking();
                 break;
-            case State.Running:
+            case RunState.Running:
                 Running();
                 break;
-            case State.Idle:
+            case RunState.Idle:
                 Idle();
                 break;
         }
@@ -71,7 +81,7 @@ public class Player : MonoBehaviour
         speed -= decceleration * Time.deltaTime;
         speed = Mathf.Max(speed, 0f);
 
-        Move();
+        Move(Vector3.forward);
     }
 
     private void Running()
@@ -80,7 +90,7 @@ public class Player : MonoBehaviour
         speed += acceleration * Time.deltaTime;
         speed = Mathf.Min(speed, runSpeed);
 
-        Move();
+        Move(Vector3.forward);
     }
 
     private void Walking()
@@ -99,14 +109,19 @@ public class Player : MonoBehaviour
             speed = Mathf.Max(speed, walkSpeed);
         }
 
-        Move();
+        if (strafeState == StrafeState.Left)
+        {
+
+        }
+
+        Move(Vector3.forward);
     }
 
-    private void Move()
+    private void Move(Vector3 direction)
     {
-        Vector3 movementVector = Vector3.forward * speed;
+        Vector3 movementVector = direction * speed;
         controller.SimpleMove(movementVector);
-        animator.SetFloat("Speed", GetPercentageOfMaxSpeed());
+        animator.SetFloat("VelocityZ", GetPercentageOfMaxSpeed());
     }
 
     private float GetPercentageOfMaxSpeed()
