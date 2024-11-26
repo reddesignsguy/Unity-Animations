@@ -1028,7 +1028,11 @@ MonoBehaviour:
   walkSpeed: 3
   runSpeed: 8
   acceleration: 10
-  decceleration: 15
+  decceleration: 20
+  angularAcceleration: 600
+  angularDeccelleration: 10
+  diagonal_strafeAngle: 45
+  horizontal_strafeAngle: 90
 --- !u!1 &963194225
 GameObject:
   m_ObjectHideFlags: 0
