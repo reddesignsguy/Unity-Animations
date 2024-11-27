@@ -19,7 +19,8 @@ public class Player : MonoBehaviour
     public float runSpeed = 15f;
     public float walkAcceleration = 0.5f;
     public float runAcceleration = 20f;
-    public float decceleration = 1f;
+    public float strafeAcceleration = 10f;
+    public float verticalDecelleration = 1f;
     public float angularAcceleration = 600f;// degrees
     public float angularDeccelleration = 300f; // used when "relaxing" (i.e: not pressing anything)
     public float diagonal_strafeAngle = 45.0f;
@@ -125,26 +126,36 @@ public class Player : MonoBehaviour
             }
         }
 
-
+        // Move left and right horizontally
         if (speed.x > targetSpeed_x)
         {
-            speed.x -= walkAcceleration * Time.fixedDeltaTime;
+            float aceelerationPercentage = Math.Min(GetPercentageOfTargetZSpeed(speed.z) + 0.15f, 1f);
+            float acceleration = sprintPressed ? strafeAcceleration * aceelerationPercentage : walkAcceleration;
+            print(acceleration);
+            speed.x -= acceleration * Time.fixedDeltaTime;
             speed.x = Mathf.Max(speed.x, targetSpeed_x);
         }
         else if (speed.x < targetSpeed_x)
         {
-            speed.x += walkAcceleration * Time.fixedDeltaTime;
+            float aceelerationPercentage = Math.Min(GetPercentageOfMaxSpeed(new Vector2(speed.x, speed.z).magnitude) + 0.15f, 1f);
+            float acceleration = sprintPressed ? strafeAcceleration * aceelerationPercentage : walkAcceleration;
+            print(acceleration);
+            speed.x += acceleration * Time.fixedDeltaTime;
             speed.x = Mathf.Min(speed.x, targetSpeed_x);
         }
 
+
+        // Slow down
         if (speed.z > targetSpeed_z)
         {
-            speed.z -= walkAcceleration * Time.fixedDeltaTime;
+            speed.z -= verticalDecelleration * Time.fixedDeltaTime;
             speed.z = Mathf.Max(speed.z, targetSpeed_z);
         }
-        else if (speed.x < targetSpeed_z)
+        // Speed up
+        else if (speed.z < targetSpeed_z)
         {
-            speed.z += walkAcceleration * Time.fixedDeltaTime;
+            float acceleration = sprintPressed ? runAcceleration : walkAcceleration;
+            speed.z += acceleration * Time.fixedDeltaTime;
             speed.z = Mathf.Min(speed.z, targetSpeed_z);
         }
     }
@@ -210,5 +221,10 @@ public class Player : MonoBehaviour
     private float GetPercentageOfMaxSpeed(float speed)
     {
         return speed / runSpeed;
+    }
+
+    private float GetPercentageOfTargetZSpeed(float speed)
+    {
+        return speed / targetSpeed_z;
     }
 }

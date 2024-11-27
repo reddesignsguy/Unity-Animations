@@ -1027,9 +1027,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   walkSpeed: 3
   runSpeed: 8
-  walkAcceleration: 10
-  runAcceleration: 20
-  decceleration: 20
+  walkAcceleration: 3.5
+  runAcceleration: 4
+  strafeAcceleration: 10
+  verticalDecelleration: 6
   angularAcceleration: 600
   angularDeccelleration: 10
   diagonal_strafeAngle: 45
@@ -1120,7 +1121,7 @@ Transform:
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
   m_LocalRotation: {x: -0.09285993, y: -0.015715258, z: 0.0014658349, w: -0.9955541}
-  m_LocalPosition: {x: 0.084, y: 2.071, z: -2.929}
+  m_LocalPosition: {x: -0.066, y: 2.366, z: -4.493}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1225,7 +1226,7 @@ Transform:
   m_GameObject: {fileID: 1133404859}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 10.08, y: -0.14, z: 13.24}
+  m_LocalPosition: {x: 23.5, y: -0.14, z: -4.3}
   m_LocalScale: {x: 42.935513, y: 0.12294481, z: 47.459694}
   m_ConstrainProportionsScale: 0
   m_Children: []
