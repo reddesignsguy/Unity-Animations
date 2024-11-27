@@ -45,7 +45,7 @@ public class Player : MonoBehaviour
         bool sprintPressed = Input.GetKey(KeyCode.LeftShift);
 
         // Get target speed
-        if (!forwardPressed && (rightPressed || leftPressed))
+        if ((!forwardPressed && (rightPressed || leftPressed)) || backwardPressed)
         {
             targetSpeed = walkSpeed;
         }
@@ -82,18 +82,18 @@ public class Player : MonoBehaviour
         }
         else if (backwardPressed)
         {
-            //if (leftPressed)
-            //{
-            //    targetMovementAngle = 225f;
-            //}
-            //else if (rightPressed)
-            //{
-            //    targetMovementAngle = 315;
-            //}
-            //else
-            //{
-            //    targetMovementAngle = 270f;
-            //}
+            if (leftPressed)
+            {
+                targetMovementAngle = 225f;
+            }
+            else if (rightPressed)
+            {
+                targetMovementAngle = 315;
+            }
+            else
+            {
+                targetMovementAngle = 270f;
+            }
         }
         else
         {
@@ -133,7 +133,9 @@ public class Player : MonoBehaviour
         bool tryingToStop = targetSpeed == 0f;
         float finalSpeed = tryingToStop ? (targetSpeed + speed) / 1.5f : speed;
         Vector3 movementVector = GetMovementUnitVector(targetMovementAngle) * finalSpeed;
-        controller.SimpleMove(movementVector);
+
+        Vector3 finalTransform = transform.TransformDirection(movementVector);
+        controller.SimpleMove(finalTransform);
     }
 
     private void UpdateAnimation()
@@ -143,6 +145,8 @@ public class Player : MonoBehaviour
 
         animator.SetFloat("VelocityZ", GetPercentageOfMaxSpeed() * velocityZ);
         animator.SetFloat("VelocityX", GetPercentageOfMaxSpeed() * velocityX);
+
+        print(animator.GetCurrentAnimatorStateInfo(0));
     }
 
     private void UpdateSpeed()
@@ -164,8 +168,6 @@ public class Player : MonoBehaviour
     {
         bool tryingToStop = targetSpeed == 0f;
         float acceleration = tryingToStop ? angularDeccelleration: angularAcceleration;
-
-        print(acceleration);
         if (movementAngle < targetMovementAngle)
         {
             movementAngle += acceleration * Time.fixedDeltaTime;
