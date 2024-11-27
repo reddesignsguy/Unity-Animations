@@ -1027,7 +1027,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   walkSpeed: 3
   runSpeed: 8
-  acceleration: 10
+  walkAcceleration: 10
+  runAcceleration: 20
   decceleration: 20
   angularAcceleration: 600
   angularDeccelleration: 10

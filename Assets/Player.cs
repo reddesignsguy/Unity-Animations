@@ -9,23 +9,21 @@ public class Player : MonoBehaviour
     private CharacterController controller;
     private Animator animator;
 
-    private float speed = 0f;
+    private Vector3 speed = Vector3.zero;
     private float movementAngle = 90.0f;
-
+    private float targetSpeed_z = 0f;
+    private float targetSpeed_x = 0f;
     private float targetSpeed = 0f;
     private float targetMovementAngle = 90.0f;
     public float walkSpeed = 5f;
     public float runSpeed = 15f;
-    public float acceleration = 0.5f;
+    public float walkAcceleration = 0.5f;
+    public float runAcceleration = 20f;
     public float decceleration = 1f;
     public float angularAcceleration = 600f;// degrees
     public float angularDeccelleration = 300f; // used when "relaxing" (i.e: not pressing anything)
     public float diagonal_strafeAngle = 45.0f;
     public float horizontal_strafeAngle = 90.0f;
-
-    //private RunState runState = RunState.Idle;
-    //private HorizontalState strafeState = HorizontalState.None;
-    //private VerticalState verticalState = VerticalState.None;
 
     private void Awake()
     {
@@ -37,6 +35,7 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
         // Check for directional inputs
         bool forwardPressed = Input.GetKey(KeyCode.W);
         bool backwardPressed = Input.GetKey(KeyCode.S);
@@ -65,57 +64,94 @@ public class Player : MonoBehaviour
             targetSpeed = 0f;
         }
 
+        // Find target vector components
         if (forwardPressed)
         {
-            if (leftPressed)
+            if (rightPressed)
             {
-                targetMovementAngle = 135f;
+                targetSpeed_z = Mathf.Sin(diagonal_strafeAngle * Mathf.Deg2Rad) * targetSpeed;
+                targetSpeed_x = Mathf.Cos(diagonal_strafeAngle * Mathf.Deg2Rad) * targetSpeed;
             }
-            else if (rightPressed)
+            else if (leftPressed)
             {
-                targetMovementAngle = 45f;
+                targetSpeed_z = Mathf.Sin((180 - diagonal_strafeAngle) * Mathf.Deg2Rad) * targetSpeed;
+                targetSpeed_x = Mathf.Cos((180 - diagonal_strafeAngle) * Mathf.Deg2Rad) * targetSpeed;
             }
             else
             {
-                targetMovementAngle = 90f;
+                targetSpeed_z = targetSpeed;
+                targetSpeed_x = 0;
             }
         }
         else if (backwardPressed)
         {
-            if (leftPressed)
+            if (rightPressed)
             {
-                targetMovementAngle = 225f;
+                // Backward + Right (diagonal)
+                targetSpeed_z = -Mathf.Sin(diagonal_strafeAngle * Mathf.Deg2Rad) * targetSpeed;
+                targetSpeed_x = Mathf.Cos(diagonal_strafeAngle * Mathf.Deg2Rad) * targetSpeed;
             }
-            else if (rightPressed)
+            else if (leftPressed)
             {
-                targetMovementAngle = 315;
+                // Backward + Left (diagonal)
+                targetSpeed_z = -Mathf.Sin((180 - diagonal_strafeAngle) * Mathf.Deg2Rad) * targetSpeed;
+                targetSpeed_x = Mathf.Cos((180 - diagonal_strafeAngle) * Mathf.Deg2Rad) * targetSpeed;
             }
             else
             {
-                targetMovementAngle = 270f;
+                // Backward only
+                targetSpeed_z = -targetSpeed;
+                targetSpeed_x = 0;
             }
         }
         else
         {
-            if (leftPressed)
+            if (rightPressed)
             {
-                targetMovementAngle = 180f;
+                // Backward + Right (diagonal)
+                targetSpeed_z = 0;
+                targetSpeed_x = targetSpeed;
             }
-            else if (rightPressed)
+            else if (leftPressed)
             {
-                targetMovementAngle = 0f;
+                targetSpeed_z = 0;
+                targetSpeed_x = -targetSpeed;
             }
             else
             {
-                // Nothing pressed, do nothing
+                // No movement
+                targetSpeed_z = 0;
+                targetSpeed_x = 0;
             }
+        }
+
+
+        if (speed.x > targetSpeed_x)
+        {
+            speed.x -= walkAcceleration * Time.fixedDeltaTime;
+            speed.x = Mathf.Max(speed.x, targetSpeed_x);
+        }
+        else if (speed.x < targetSpeed_x)
+        {
+            speed.x += walkAcceleration * Time.fixedDeltaTime;
+            speed.x = Mathf.Min(speed.x, targetSpeed_x);
+        }
+
+        if (speed.z > targetSpeed_z)
+        {
+            speed.z -= walkAcceleration * Time.fixedDeltaTime;
+            speed.z = Mathf.Max(speed.z, targetSpeed_z);
+        }
+        else if (speed.x < targetSpeed_z)
+        {
+            speed.z += walkAcceleration * Time.fixedDeltaTime;
+            speed.z = Mathf.Min(speed.z, targetSpeed_z);
         }
     }
 
    void FixedUpdate()
     {
-        UpdateSpeed();
-        UpdateMovementAngle();
+        //UpdateMovementAngle();
         Move();
         UpdateAnimation();
     }
@@ -124,45 +160,35 @@ public class Player : MonoBehaviour
     {
         Quaternion yawRotation = Quaternion.Euler(0, -angle, 0);
         Vector3 rotatedVector = yawRotation * Vector3.right;
-        //print(rotatedVector);
         return rotatedVector;
     }
 
     private void Move()
     {
-        bool tryingToStop = targetSpeed == 0f;
-        float finalSpeed = tryingToStop ? (targetSpeed + speed) / 1.5f : speed;
-        Vector3 movementVector = GetMovementUnitVector(targetMovementAngle) * finalSpeed;
-
-        Vector3 finalTransform = transform.TransformDirection(movementVector);
+        Vector3 finalTransform = transform.TransformDirection(speed);
         controller.SimpleMove(finalTransform);
     }
 
     private void UpdateAnimation()
     {
-        float velocityX = Mathf.Cos(movementAngle * Mathf.Deg2Rad);
-        float velocityZ = Mathf.Sin(movementAngle * Mathf.Deg2Rad);
-
-        animator.SetFloat("VelocityZ", GetPercentageOfMaxSpeed() * velocityZ);
-        animator.SetFloat("VelocityX", GetPercentageOfMaxSpeed() * velocityX);
-
-        print(animator.GetCurrentAnimatorStateInfo(0));
+        animator.SetFloat("VelocityZ", GetPercentageOfMaxSpeed(speed.z));
+        animator.SetFloat("VelocityX", GetPercentageOfMaxSpeed(speed.x));
     }
 
-    private void UpdateSpeed()
-    {
-        if (speed < targetSpeed)
-        {
-            speed += acceleration * Time.fixedDeltaTime;
-            speed = Mathf.Min(speed, targetSpeed);
-        }
-        else if (speed > targetSpeed)
-        {
-            speed -= decceleration * Time.fixedDeltaTime;
-            speed = Mathf.Max(speed, targetSpeed);
-        }
+    //private void UpdateSpeed()
+    //{
+    //    if (speed < targetSpeed)
+    //    {
+    //        speed += acceleration * Time.fixedDeltaTime;
+    //        speed = Mathf.Min(speed, targetSpeed);
+    //    }
+    //    else if (speed > targetSpeed)
+    //    {
+    //        speed -= decceleration * Time.fixedDeltaTime;
+    //        speed = Mathf.Max(speed, targetSpeed);
+    //    }
 
-    }
+    //}
 
     private void UpdateMovementAngle()
     {
@@ -181,7 +207,7 @@ public class Player : MonoBehaviour
 
     }
 
-    private float GetPercentageOfMaxSpeed()
+    private float GetPercentageOfMaxSpeed(float speed)
     {
         return speed / runSpeed;
     }
