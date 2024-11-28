@@ -7,7 +7,7 @@ public class AimBehavior : MonoBehaviour
     public Transform aimGoal;
 
     // The maximum distance of the ray
-    public float rayDistance = 100f;
+    public float rayDistance = 10f;
 
     // LayerMask to filter objects the ray can hit
     public LayerMask hitLayers;
@@ -21,16 +21,10 @@ public class AimBehavior : MonoBehaviour
         // Direction of the ray (forward from the object's perspective)
         Vector3 rayDirection = transform.forward;
 
+        Vector3 lookAtPosition = rayOrigin + rayDirection * rayDistance;
+
         int layerMask = ~LayerMask.GetMask("Player");
 
-
-        // Perform the raycast
-        if (Physics.Raycast(rayOrigin, rayDirection, out RaycastHit hitInfo, rayDistance, layerMask))
-        {
-            Debug.Log(hitInfo.collider.gameObject);
-            // If it hits something, draw a green line and log the object
-            Debug.DrawLine(rayOrigin, hitInfo.point, Color.green);
-            aimGoal.position = hitInfo.point;
-        }
+        aimGoal.position = lookAtPosition;
     }
 }
