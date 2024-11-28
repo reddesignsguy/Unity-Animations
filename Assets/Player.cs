@@ -131,7 +131,7 @@ public class Player : MonoBehaviour
         {
             float aceelerationPercentage = Math.Min(GetPercentageOfTargetZSpeed(speed.z) + 0.15f, 1f);
             float acceleration = sprintPressed ? strafeAcceleration * aceelerationPercentage : walkAcceleration;
-            print(acceleration);
+            //print(acceleration);
             speed.x -= acceleration * Time.fixedDeltaTime;
             speed.x = Mathf.Max(speed.x, targetSpeed_x);
         }
@@ -139,7 +139,7 @@ public class Player : MonoBehaviour
         {
             float aceelerationPercentage = Math.Min(GetPercentageOfMaxSpeed(new Vector2(speed.x, speed.z).magnitude) + 0.15f, 1f);
             float acceleration = sprintPressed ? strafeAcceleration * aceelerationPercentage : walkAcceleration;
-            print(acceleration);
+            //print(acceleration);
             speed.x += acceleration * Time.fixedDeltaTime;
             speed.x = Mathf.Min(speed.x, targetSpeed_x);
         }
