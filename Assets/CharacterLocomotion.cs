@@ -24,33 +24,42 @@ public class CharacterLocomotion : MonoBehaviour
         controller = GetComponent<CharacterController>();
     }
 
-    private void Update()
-    {
-        Vector2 moveVector = input.awsd;
+    //private void Update()
+    //{
+    //    Vector2 moveVector = input.awsd;
 
-        if (moveVector.x == 0 || character.IsUTurning())
-        {
-            gravity.x = Mathf.MoveTowards(gravity.x, 0f, Time.deltaTime * inputDeceleration);
-        }
-        else
-            gravity.x = Mathf.MoveTowards(gravity.x, moveVector.x, Time.deltaTime * inputAcceleration);
-        gravity.x = Mathf.Clamp(gravity.x, -1, 1);
+    //    if (moveVector.x == 0 || character.IsUTurning())
+    //    {
+    //        gravity.x = Mathf.MoveTowards(gravity.x, 0f, Time.deltaTime * inputDeceleration);
+    //    }
+    //    else
+    //        gravity.x = Mathf.MoveTowards(gravity.x, moveVector.x, Time.deltaTime * inputAcceleration);
+    //    gravity.x = Mathf.Clamp(gravity.x, -1, 1);
 
-        if (moveVector.y == 0 || character.IsUTurning())
-            gravity.y = Mathf.MoveTowards(gravity.y, 0f, Time.deltaTime * inputDeceleration);
-        else
-            gravity.y = Mathf.MoveTowards(gravity.y, moveVector.y, Time.deltaTime * inputAcceleration);
+    //    if (moveVector.y == 0 || character.IsUTurning())
+    //        gravity.y = Mathf.MoveTowards(gravity.y, 0f, Time.deltaTime * inputDeceleration);
+    //    else
+    //        gravity.y = Mathf.MoveTowards(gravity.y, moveVector.y, Time.deltaTime * inputAcceleration);
 
-        gravity.y = Mathf.Clamp(gravity.y, -1, 1);
-    }
+    //    gravity.y = Mathf.Clamp(gravity.y, -1, 1);
+    //}
 
-    private void FixedUpdate()
-    {
-        controller.SimpleMove(transform.forward * Mathf.Abs(gravity.magnitude) * m_maxSpeed);
+    //private Vector3 m_lastDirection;
+    //private void FixedUpdate()
+    //{
+    //    if (character.IsUTurning())
+    //    {
+    //        controller.SimpleMove(m_lastDirection * Mathf.Abs(gravity.magnitude) * m_maxSpeed);
+    //    }
+    //    else
+    //    {
+    //        controller.SimpleMove(transform.forward * Mathf.Abs(gravity.magnitude) * m_maxSpeed);
+    //        m_lastDirection = controller.velocity;
+    //    }
 
-        float speed = controller.velocity.magnitude;
-        float animationSpeed = speed / m_maxSpeed;
-        _animator.SetFloat("Y", animationSpeed);
-    }
+    //    float speed = controller.velocity.magnitude;
+    //    float animationSpeed = speed / m_maxSpeed;
+    //    _animator.SetFloat("Y", animationSpeed);
+    //}
 
 }

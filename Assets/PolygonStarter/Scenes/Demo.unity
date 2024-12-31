@@ -21311,6 +21311,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 1045401375514670, guid: f11fc98cf1e8d5547a9b2ec85cc9c664, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1771309476}
+    - targetCorrespondingSourceObject: {fileID: 1045401375514670, guid: f11fc98cf1e8d5547a9b2ec85cc9c664, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1771309477}
   m_SourcePrefab: {fileID: 100100000, guid: f11fc98cf1e8d5547a9b2ec85cc9c664, type: 3}
 --- !u!4 &1771309469 stripped
 Transform:
@@ -21356,8 +21359,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   input: {fileID: 1771309476}
+  character: {fileID: 1771309477}
   inputAcceleration: 6
   inputDeceleration: 5
+  m_maxSpeed: 5
 --- !u!114 &1771309473
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21400,9 +21405,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f18b5362f6c264df4bca4c33ee77a875, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  character: {fileID: 1771309477}
   input: {fileID: 1771309476}
   camAngleOffset: {fileID: 1920056852}
-  m_turnSpeed: 2
+  m_turnSpeed: 1.5
+  m_uTurnSpeed: 0
+  inputAcceleration: 6
+  inputDeceleration: 5
+  m_maxSpeed: 5
+  m_stopUTurningThreshold: 2
+  m_speedThresholdForTurning: 0.4
 --- !u!114 &1771309476
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21416,6 +21428,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   awsd: {x: 0, y: 0}
+--- !u!114 &1771309477
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1646530328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 448293464a3ae49abae625dc0f3ded97, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  state: 0
 --- !u!1001 &1776713146
 PrefabInstance:
   m_ObjectHideFlags: 0
