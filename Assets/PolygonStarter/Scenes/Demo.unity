@@ -1144,7 +1144,7 @@ Transform:
   m_GameObject: {fileID: 49999280}
   serializedVersion: 2
   m_LocalRotation: {x: -0.35569927, y: 0, z: 0, w: 0.9346005}
-  m_LocalPosition: {x: 0, y: -0.000000029802322, z: 0}
+  m_LocalPosition: {x: 0.00000023841858, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -11043,7 +11043,7 @@ Transform:
   m_GameObject: {fileID: 860380867}
   serializedVersion: 2
   m_LocalRotation: {x: -0.3386405, y: 0, z: 0, w: 0.9409158}
-  m_LocalPosition: {x: 0, y: -0.000000029802322, z: 0}
+  m_LocalPosition: {x: 0.00000023841858, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -21408,8 +21408,8 @@ MonoBehaviour:
   character: {fileID: 1771309477}
   input: {fileID: 1771309476}
   camAngleOffset: {fileID: 1920056852}
-  m_turnSpeed: 1.5
-  m_uTurnSpeed: 0
+  m_turnSpeed: 4.5
+  m_uTurnSpeed: 6
   inputAcceleration: 6
   inputDeceleration: 5
   m_maxSpeed: 5
@@ -24223,7 +24223,7 @@ Transform:
   m_GameObject: {fileID: 1964467346}
   serializedVersion: 2
   m_LocalRotation: {x: -0.37259573, y: 0, z: 0, w: 0.9279938}
-  m_LocalPosition: {x: 0, y: -0.000000029802322, z: 0}
+  m_LocalPosition: {x: 0.00000023841858, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
