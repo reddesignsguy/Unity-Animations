@@ -1,5 +1,12 @@
 using UnityEngine;
 
+public enum CharState
+{
+    Walking,
+    Jumping,
+    Falling
+}
+
 public class CharacterAiming : MonoBehaviour
 {
     [SerializeField] private float m_turnSpeed = 2f;
@@ -7,6 +14,7 @@ public class CharacterAiming : MonoBehaviour
     [SerializeField] private float inputDeceleration = 5f;
     [SerializeField] private float m_maxSpeed = 5f;
     [SerializeField] private float m_stopUTurningThreshold = 2f;
+    [SerializeField] private float m_maximumStepThreshold = 0.5f;
     [SerializeField] private Character character;
     [SerializeField] private InputHandler input;
     [SerializeField] private CinemachineCameraOffset camAngleOffset;
@@ -35,6 +43,10 @@ public class CharacterAiming : MonoBehaviour
         AnimateCharacter();
     }
 
+    int i = 0;
+    public float raycastLen = 5f;
+    private CharState m_state = CharState.Walking;
+
     private void MoveCharacter()
     {
         Vector2 moveVector = input.awsd;
@@ -50,6 +62,41 @@ public class CharacterAiming : MonoBehaviour
 
         // Apply movement
         controller.SimpleMove(transform.forward * Mathf.Abs(m_gravity) * m_maxSpeed);
+        
+        // Stairs
+        // 1. Check if we're on stairs
+        //    a. Check if platform below is at least a certain height
+        //    b. Check if we're on a platform right now (I.e: not falling or jumping)
+        //
+
+        RaycastHit hit;
+        Vector3 characterBottom = transform.position + controller.center - new Vector3(0,controller.height/2f,0);
+        Physics.Raycast(characterBottom, Vector3.down, out hit, raycastLen);
+
+        bool foundStepBelow = hit.distance < m_maximumStepThreshold;
+        if (foundStepBelow && m_state != CharState.Falling)
+        {
+            //Debug.Log("Stairs detected: " + i );
+            i++;
+
+            controller.transform.position = hit.point;
+        }
+
+        if (controller.velocity.y < -1f)
+        {
+            //Debug.Log("Falling");
+            m_state = CharState.Falling;
+        }
+        else
+        {
+            m_state = CharState.Walking;
+        }
+
+        Debug.Log(m_state);
+
+        Debug.DrawRay(transform.position + controller.center - new Vector3(0, controller.height / 2f, 0), Vector3.down * raycastLen, Color.red);
+        // 2. Walk down stairs
+        //    a. Teleport character to the platform below
     }
 
     private void AnimateCharacter()
