@@ -1,3 +1,5 @@
+using System.Collections;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public enum CharState
@@ -9,6 +11,7 @@ public enum CharState
 
 public class CharacterAiming : MonoBehaviour
 {
+    [SerializeField] private CharacterControllerManager m_controllerManager;
     [SerializeField] private float m_turnSpeed = 2f;
     [SerializeField] private float inputAcceleration = 6f;
     [SerializeField] private float inputDeceleration = 5f;
@@ -18,16 +21,19 @@ public class CharacterAiming : MonoBehaviour
     [SerializeField] private Character character;
     [SerializeField] private InputHandler input;
     [SerializeField] private CinemachineCameraOffset camAngleOffset;
-    private CharacterController controller;
+    [SerializeField] private CharacterController controller;
     private Animator _animator;
 
+    private Vector3 m_defaultControllerToRootOffset;
     private float m_gravity;
     private float m_targetLookAngle = 0;
+
+    private Coroutine m_walkDownStep;
 
     private void Awake()
     {
         _animator = GetComponent<Animator>();
-        controller = GetComponent<CharacterController>();
+        m_defaultControllerToRootOffset = _animator.rootPosition - (controller.transform.position);
     }
 
     void Start()
@@ -43,9 +49,26 @@ public class CharacterAiming : MonoBehaviour
         AnimateCharacter();
     }
 
+    //private void OnEnable()
+    //{
+    //    m_controllerManager.OnCharacterCollision += HandleControllerCollision;
+    //}
+
+    //private void OnDisable()
+    //{
+    //    m_controllerManager.OnCharacterCollision -= HandleControllerCollision;
+    //}
+
     int i = 0;
     public float raycastLen = 5f;
     private CharState m_state = CharState.Walking;
+    private bool m_characterOutOfSyncWithController = false;
+    public GameObject root;
+
+    [SerializeField] private float m_characterToControllerSyncThreshold = 0.01f;
+    [SerializeField] private float m_characterSyncPercentRate = 0.1f;
+    [SerializeField] private float m_stepUpMinimum = 0.2f; // Minimum increase in height to enable height LERPing for going up stairs
+
 
     private void MoveCharacter()
     {
@@ -61,8 +84,21 @@ public class CharacterAiming : MonoBehaviour
         }
 
         // Apply movement
+        Vector3 previousPos = transform.position;
         controller.SimpleMove(transform.forward * Mathf.Abs(m_gravity) * m_maxSpeed);
-        
+        if (m_characterOutOfSyncWithController)
+        {
+            transform.position = previousPos;
+        }
+
+        Debug.Log(m_controllerManager.previousDisplacement.y);
+        if (transform.position.y - previousPos.y > m_stepUpMinimum)
+        {
+            Debug.Log("Stepping up");
+            m_characterOutOfSyncWithController = true;
+            transform.position = previousPos;
+        }
+
         // Stairs
         // 1. Check if we're on stairs
         //    a. Check if platform below is at least a certain height
@@ -70,21 +106,32 @@ public class CharacterAiming : MonoBehaviour
         //
 
         RaycastHit hit;
-        Vector3 characterBottom = transform.position + controller.center - new Vector3(0,controller.height/2f,0);
+        Vector3 characterBottom = controller.transform.position + controller.center - new Vector3(0,controller.height/2f,0);
         Physics.Raycast(characterBottom, Vector3.down, out hit, raycastLen);
 
         bool foundStepBelow = hit.distance < m_maximumStepThreshold;
-        if (foundStepBelow && m_state != CharState.Falling)
-        {
-            //Debug.Log("Stairs detected: " + i );
-            i++;
+        Vector3 offset = hit.point - characterBottom;
 
-            controller.transform.position = hit.point;
+        
+        // Walking down stairs
+        if (foundStepBelow && offset.magnitude > 0.1f && m_state != CharState.Falling && controller.velocity.y < 0)
+        {
+            Physics.SphereCast(controller.transform.position + controller.center, controller.radius, Vector3.down, out RaycastHit sphereHit, raycastLen);
+
+            if (sphereHit.collider.gameObject == hit.collider.gameObject)
+            {
+
+                Vector3 previousPos2 = transform.position;
+                controller.transform.position = hit.point;
+
+                transform.position = previousPos2;
+
+                m_characterOutOfSyncWithController = true;
+            }
         }
 
         if (controller.velocity.y < -1f)
         {
-            //Debug.Log("Falling");
             m_state = CharState.Falling;
         }
         else
@@ -92,11 +139,27 @@ public class CharacterAiming : MonoBehaviour
             m_state = CharState.Walking;
         }
 
-        Debug.Log(m_state);
+        //Debug.Log(m_state);
 
-        Debug.DrawRay(transform.position + controller.center - new Vector3(0, controller.height / 2f, 0), Vector3.down * raycastLen, Color.red);
+        Debug.DrawRay(controller.transform.position + controller.center - new Vector3(0, controller.height / 2f, 0), Vector3.down * raycastLen, Color.red);
         // 2. Walk down stairs
         //    a. Teleport character to the platform below
+
+        if (m_characterOutOfSyncWithController)
+        {
+            Vector3 targetPos = controller.transform.position;
+            //Debug.Log("Interpolating");
+            float nextStep_y = Mathf.Lerp(transform.position.y, targetPos.y, m_characterSyncPercentRate * Time.deltaTime);
+            Vector3 nextStep = new Vector3(targetPos.x, nextStep_y, targetPos.z);
+            transform.position = nextStep;
+
+            
+            if (Mathf.Abs(targetPos.y - transform.position.y) < m_characterToControllerSyncThreshold)
+            {
+                Debug.Log("Stop interpolation");
+                m_characterOutOfSyncWithController = false;
+            }
+        }
     }
 
     private void AnimateCharacter()
@@ -120,5 +183,51 @@ public class CharacterAiming : MonoBehaviour
 
         // Apply rotation
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, m_turnSpeed * Time.fixedDeltaTime);
+    }
+
+    private void HandleControllerCollision(ControllerColliderHit hit)
+    {
+        Debug.Log(hit.gameObject);
+        //throw new System.NotImplementedException();
+    }
+
+    private IEnumerator InterpolatePosition(Transform transformToMove, Vector3 start, Vector3 target, float duration)
+    {
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            // Calculate the interpolation factor (0 to 1)
+            float t = elapsedTime / duration;
+
+            // Interpolate the position using Lerp
+            transformToMove.position = Vector3.Lerp(start, target, t);
+
+            // Increment elapsed time
+            elapsedTime += Time.deltaTime;
+
+            // Wait until the next frame
+            Debug.Log("Position: " + transformToMove.position);
+            yield return null;
+        }
+
+        // Ensure the final position is set
+        transformToMove.position = target;
+        Debug.Log(transformToMove.position + " vs: " + controller.transform.position);
+        Debug.Log("-----------------");
+    }
+
+    // Function to get the capsule properties
+    private void GetControllerCapsuleProperties(out Vector3 top, out Vector3 bottom, out float radius, out Vector3 center, out float height)
+    {
+
+        // Get the center and height of the CharacterController
+        center = controller.bounds.center;
+        height = controller.height;
+        radius = controller.radius;
+
+        // The capsule is aligned along the Y-axis, so calculate the top and bottom points of the capsule
+        top = center + Vector3.up * (height / 2f);
+        bottom = center - Vector3.up * (height / 2f);
     }
 }
