@@ -1,6 +1,7 @@
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public enum CharState
 {
@@ -11,7 +12,6 @@ public enum CharState
 
 public class CharacterAiming : MonoBehaviour
 {
-    [SerializeField] private CharacterControllerManager m_controllerManager;
     [SerializeField] private float m_turnSpeed = 2f;
     [SerializeField] private float inputAcceleration = 6f;
     [SerializeField] private float inputDeceleration = 5f;
@@ -49,16 +49,6 @@ public class CharacterAiming : MonoBehaviour
         AnimateCharacter();
     }
 
-    //private void OnEnable()
-    //{
-    //    m_controllerManager.OnCharacterCollision += HandleControllerCollision;
-    //}
-
-    //private void OnDisable()
-    //{
-    //    m_controllerManager.OnCharacterCollision -= HandleControllerCollision;
-    //}
-
     int i = 0;
     public float raycastLen = 5f;
     private CharState m_state = CharState.Walking;
@@ -91,19 +81,12 @@ public class CharacterAiming : MonoBehaviour
             transform.position = previousPos;
         }
 
-        Debug.Log(m_controllerManager.previousDisplacement.y);
-        if (transform.position.y - previousPos.y > m_stepUpMinimum)
+        bool steppingUp = transform.position.y - previousPos.y > m_stepUpMinimum;
+        if (steppingUp)
         {
-            Debug.Log("Stepping up");
             m_characterOutOfSyncWithController = true;
             transform.position = previousPos;
         }
-
-        // Stairs
-        // 1. Check if we're on stairs
-        //    a. Check if platform below is at least a certain height
-        //    b. Check if we're on a platform right now (I.e: not falling or jumping)
-        //
 
         RaycastHit hit;
         Vector3 characterBottom = controller.transform.position + controller.center - new Vector3(0,controller.height/2f,0);
@@ -139,12 +122,6 @@ public class CharacterAiming : MonoBehaviour
             m_state = CharState.Walking;
         }
 
-        //Debug.Log(m_state);
-
-        Debug.DrawRay(controller.transform.position + controller.center - new Vector3(0, controller.height / 2f, 0), Vector3.down * raycastLen, Color.red);
-        // 2. Walk down stairs
-        //    a. Teleport character to the platform below
-
         if (m_characterOutOfSyncWithController)
         {
             Vector3 targetPos = controller.transform.position;
@@ -156,7 +133,6 @@ public class CharacterAiming : MonoBehaviour
             
             if (Mathf.Abs(targetPos.y - transform.position.y) < m_characterToControllerSyncThreshold)
             {
-                Debug.Log("Stop interpolation");
                 m_characterOutOfSyncWithController = false;
             }
         }
