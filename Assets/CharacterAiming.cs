@@ -1,7 +1,6 @@
 using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public enum CharState
 {
@@ -205,5 +204,27 @@ public class CharacterAiming : MonoBehaviour
         // The capsule is aligned along the Y-axis, so calculate the top and bottom points of the capsule
         top = center + Vector3.up * (height / 2f);
         bottom = center - Vector3.up * (height / 2f);
+    }
+
+    public float m_iKRayOriginOffset = 1f;
+    public float m_iKBodyOffset = 1;
+    public LayerMask m_ikTargetLayer;
+    public float m_iKFootDistanceToGround;
+    private void OnAnimatorIK(int layerIndex)
+    {
+        Debug.Log("IK Animating");
+        _animator.SetIKPositionWeight(AvatarIKGoal.LeftFoot, 1);
+        _animator.SetIKRotationWeight(AvatarIKGoal.LeftFoot, 1);
+
+        RaycastHit hit;
+        Ray ray = new Ray(_animator.GetIKPosition(AvatarIKGoal.LeftFoot) + Vector3.up * m_iKRayOriginOffset, Vector3.down);
+        
+        if (Physics.Raycast(ray, out hit, m_iKBodyOffset, m_ikTargetLayer))
+        {
+            Vector3 footPosition = hit.point;
+            footPosition.y += m_iKFootDistanceToGround;
+            _animator.SetIKPosition(AvatarIKGoal.LeftFoot, footPosition);
+        }
+
     }
 }
