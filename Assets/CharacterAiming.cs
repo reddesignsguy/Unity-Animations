@@ -212,19 +212,38 @@ public class CharacterAiming : MonoBehaviour
     public float m_iKFootDistanceToGround;
     private void OnAnimatorIK(int layerIndex)
     {
-        Debug.Log("IK Animating");
+        //Debug.Log("IK Animating");
+        _animator.SetIKPositionWeight(AvatarIKGoal.LeftFoot, _animator.GetFloat("IKLeftFootWeight"));
+        _animator.SetIKRotationWeight(AvatarIKGoal.LeftFoot, _animator.GetFloat("IKLeftFootWeight"));
+        _animator.SetIKPositionWeight(AvatarIKGoal.RightFoot, _animator.GetFloat("IKRightFootWeight"));
+        _animator.SetIKRotationWeight(AvatarIKGoal.RightFoot, _animator.GetFloat("IKRightFootWeight"));
+
         _animator.SetIKPositionWeight(AvatarIKGoal.LeftFoot, 1);
         _animator.SetIKRotationWeight(AvatarIKGoal.LeftFoot, 1);
+        _animator.SetIKPositionWeight(AvatarIKGoal.RightFoot, 1);
+        _animator.SetIKRotationWeight(AvatarIKGoal.RightFoot, 1);
 
         RaycastHit hit;
-        Ray ray = new Ray(_animator.GetIKPosition(AvatarIKGoal.LeftFoot) + Vector3.up * m_iKRayOriginOffset, Vector3.down);
-        
-        if (Physics.Raycast(ray, out hit, m_iKBodyOffset, m_ikTargetLayer))
+        Ray ray = new Ray(_animator.GetIKPosition(AvatarIKGoal.LeftFoot) + Vector3.up * m_iKRayOriginOffset, Vector3.down * 2f);
+        //Debug.DrawRay(_animator.GetIKPosition(AvatarIKGoal.LeftFoot) + Vector3.up * m_iKRayOriginOffset, Vector3.down * 2f, Color.red);
+        if (Physics.Raycast(ray, out hit, 2f, m_ikTargetLayer))
         {
+            Debug.Log("Found hit");
             Vector3 footPosition = hit.point;
             footPosition.y += m_iKFootDistanceToGround;
+            
             _animator.SetIKPosition(AvatarIKGoal.LeftFoot, footPosition);
+
         }
 
+        ray = new Ray(_animator.GetIKPosition(AvatarIKGoal.RightFoot) + Vector3.up * m_iKRayOriginOffset, Vector3.down * 2f);
+        if (Physics.Raycast(ray, out hit, 2f, m_ikTargetLayer))
+        {
+            Debug.Log("Found hit");
+            Vector3 footPosition = hit.point;
+            footPosition.y += m_iKFootDistanceToGround;
+
+            _animator.SetIKPosition(AvatarIKGoal.RightFoot, footPosition);
+        }
     }
 }

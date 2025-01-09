@@ -26204,7 +26204,7 @@ MonoBehaviour:
   m_ikTargetLayer:
     serializedVersion: 2
     m_Bits: 119
-  m_iKFootDistanceToGround: 0
+  m_iKFootDistanceToGround: 0.056
 --- !u!114 &1771309476
 MonoBehaviour:
   m_ObjectHideFlags: 0
