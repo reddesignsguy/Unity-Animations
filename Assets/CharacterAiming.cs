@@ -4,6 +4,7 @@ using UnityEngine;
 
 public enum CharState
 {
+    Idle,
     Walking,
     Jumping,
     Falling
@@ -112,7 +113,11 @@ public class CharacterAiming : MonoBehaviour
             }
         }
 
-        if (controller.velocity.y < -1f)
+        if (controller.velocity.magnitude < 0.01f)
+        {
+            m_state = CharState.Idle;
+        }
+        else if (controller.velocity.y < -1f)
         {
             m_state = CharState.Falling;
         }
@@ -218,32 +223,43 @@ public class CharacterAiming : MonoBehaviour
         _animator.SetIKPositionWeight(AvatarIKGoal.RightFoot, _animator.GetFloat("IKRightFootWeight"));
         _animator.SetIKRotationWeight(AvatarIKGoal.RightFoot, _animator.GetFloat("IKRightFootWeight"));
 
-        _animator.SetIKPositionWeight(AvatarIKGoal.LeftFoot, 1);
-        _animator.SetIKRotationWeight(AvatarIKGoal.LeftFoot, 1);
-        _animator.SetIKPositionWeight(AvatarIKGoal.RightFoot, 1);
-        _animator.SetIKRotationWeight(AvatarIKGoal.RightFoot, 1);
-
-        RaycastHit hit;
+        RaycastHit leftHit;
         Ray ray = new Ray(_animator.GetIKPosition(AvatarIKGoal.LeftFoot) + Vector3.up * m_iKRayOriginOffset, Vector3.down * 2f);
-        //Debug.DrawRay(_animator.GetIKPosition(AvatarIKGoal.LeftFoot) + Vector3.up * m_iKRayOriginOffset, Vector3.down * 2f, Color.red);
-        if (Physics.Raycast(ray, out hit, 2f, m_ikTargetLayer))
+        Debug.DrawRay(_animator.GetIKPosition(AvatarIKGoal.LeftFoot) + Vector3.up * m_iKRayOriginOffset, Vector3.down * 2f, Color.red);
+        Debug.DrawRay(_animator.GetIKPosition(AvatarIKGoal.RightFoot) + Vector3.up * m_iKRayOriginOffset, Vector3.down * 2f, Color.red);
+
+        if (Physics.Raycast(ray, out leftHit, 2f, m_ikTargetLayer))
         {
             Debug.Log("Found hit");
-            Vector3 footPosition = hit.point;
+            Vector3 footPosition = leftHit.point;
             footPosition.y += m_iKFootDistanceToGround;
             
             _animator.SetIKPosition(AvatarIKGoal.LeftFoot, footPosition);
 
+            Vector3 forward = Vector3.ProjectOnPlane(transform.forward, leftHit.normal);
+            Quaternion footRotation = Quaternion.LookRotation(forward, leftHit.normal);
+            _animator.SetIKRotation(AvatarIKGoal.LeftFoot, footRotation);
         }
 
+        RaycastHit rightHit;
         ray = new Ray(_animator.GetIKPosition(AvatarIKGoal.RightFoot) + Vector3.up * m_iKRayOriginOffset, Vector3.down * 2f);
-        if (Physics.Raycast(ray, out hit, 2f, m_ikTargetLayer))
+        if (Physics.Raycast(ray, out rightHit, 2f, m_ikTargetLayer))
         {
             Debug.Log("Found hit");
-            Vector3 footPosition = hit.point;
+            Vector3 footPosition = rightHit.point;
             footPosition.y += m_iKFootDistanceToGround;
 
             _animator.SetIKPosition(AvatarIKGoal.RightFoot, footPosition);
+
+            Vector3 forward = Vector3.ProjectOnPlane(transform.forward, rightHit.normal);
+            Quaternion footRotation = Quaternion.LookRotation(forward, rightHit.normal);
+            _animator.SetIKRotation(AvatarIKGoal.RightFoot, footRotation);
         }
+
+        // 
+        //float feetHeightDifference = Mathf.Abs(rightHit.point.y - leftHit.point.y);
+        //transform.position = controller.transform.position - new Vector3(0, feetHeightDifference, 0);
+
+        
     }
 }
