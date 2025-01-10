@@ -58,6 +58,9 @@ public class CharacterAiming : MonoBehaviour
     [SerializeField] private float m_characterToControllerSyncThreshold = 0.01f;
     [SerializeField] private float m_characterSyncPercentRate = 0.1f;
     [SerializeField] private float m_stepUpMinimum = 0.2f; // Minimum increase in height to enable height LERPing for going up stairs
+    [SerializeField] private float m_slowCharacterSyncPercentRate = 0.005f;
+
+    //private Vector3 m_controllerToCharacterSyncTarget;
 
 
     private void MoveCharacter()
@@ -129,13 +132,25 @@ public class CharacterAiming : MonoBehaviour
         if (m_characterOutOfSyncWithController)
         {
             Vector3 targetPos = controller.transform.position;
-            //Debug.Log("Interpolating");
-            float nextStep_y = Mathf.Lerp(transform.position.y, targetPos.y, m_characterSyncPercentRate * Time.deltaTime);
+            float nextStep_y;
+
+            // If idle, adjust for IK
+            if (m_state == CharState.Idle)
+            {
+                targetPos.y -= m_ikHeightBetweenFeet;
+                nextStep_y = Mathf.Lerp(transform.position.y, targetPos.y, m_slowCharacterSyncPercentRate * Time.deltaTime);
+            }
+            // No IK
+            else
+            {
+                nextStep_y = Mathf.Lerp(transform.position.y, targetPos.y, m_characterSyncPercentRate * Time.deltaTime);
+            }
+
             Vector3 nextStep = new Vector3(targetPos.x, nextStep_y, targetPos.z);
             transform.position = nextStep;
 
-            
-            if (Mathf.Abs(targetPos.y - transform.position.y) < m_characterToControllerSyncThreshold)
+            bool doneSyncing = Mathf.Abs(targetPos.y - transform.position.y) < m_characterToControllerSyncThreshold;
+            if (doneSyncing)
             {
                 m_characterOutOfSyncWithController = false;
             }
@@ -187,14 +202,14 @@ public class CharacterAiming : MonoBehaviour
             elapsedTime += Time.deltaTime;
 
             // Wait until the next frame
-            Debug.Log("Position: " + transformToMove.position);
+            //Debug.Log("Position: " + transformToMove.position);
             yield return null;
         }
 
         // Ensure the final position is set
         transformToMove.position = target;
-        Debug.Log(transformToMove.position + " vs: " + controller.transform.position);
-        Debug.Log("-----------------");
+        //Debug.Log(transformToMove.position + " vs: " + controller.transform.position);
+        //Debug.Log("-----------------");
     }
 
     // Function to get the capsule properties
@@ -215,6 +230,7 @@ public class CharacterAiming : MonoBehaviour
     public float m_iKBodyOffset = 1;
     public LayerMask m_ikTargetLayer;
     public float m_iKFootDistanceToGround;
+    private float m_ikHeightBetweenFeet = 0f;
     private void OnAnimatorIK(int layerIndex)
     {
         //Debug.Log("IK Animating");
@@ -230,7 +246,7 @@ public class CharacterAiming : MonoBehaviour
 
         if (Physics.Raycast(ray, out leftHit, 2f, m_ikTargetLayer))
         {
-            Debug.Log("Found hit");
+            //Debug.Log("Found hit");
             Vector3 footPosition = leftHit.point;
             footPosition.y += m_iKFootDistanceToGround;
             
@@ -245,7 +261,7 @@ public class CharacterAiming : MonoBehaviour
         ray = new Ray(_animator.GetIKPosition(AvatarIKGoal.RightFoot) + Vector3.up * m_iKRayOriginOffset, Vector3.down * 2f);
         if (Physics.Raycast(ray, out rightHit, 2f, m_ikTargetLayer))
         {
-            Debug.Log("Found hit");
+            //Debug.Log("Found hit");
             Vector3 footPosition = rightHit.point;
             footPosition.y += m_iKFootDistanceToGround;
 
@@ -256,10 +272,12 @@ public class CharacterAiming : MonoBehaviour
             _animator.SetIKRotation(AvatarIKGoal.RightFoot, footRotation);
         }
 
-        // 
-        //float feetHeightDifference = Mathf.Abs(rightHit.point.y - leftHit.point.y);
-        //transform.position = controller.transform.position - new Vector3(0, feetHeightDifference, 0);
+        float heightBetweenFeet = Mathf.Abs(rightHit.point.y - leftHit.point.y);
+        if (Mathf.Abs(heightBetweenFeet - m_ikHeightBetweenFeet) > 0.1f || heightBetweenFeet == 0f)
+        {
+            m_characterOutOfSyncWithController = true;
+        }
 
-        
+        m_ikHeightBetweenFeet = heightBetweenFeet;
     }
 }

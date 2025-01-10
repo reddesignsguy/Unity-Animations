@@ -26198,7 +26198,8 @@ MonoBehaviour:
   root: {fileID: 249747675}
   m_characterToControllerSyncThreshold: 0.01
   m_characterSyncPercentRate: 11
-  m_stepUpMinimum: 0.1
+  m_stepUpMinimum: 5
+  m_slowCharacterSyncPercentRate: 7
   m_iKRayOriginOffset: 1
   m_iKBodyOffset: 1
   m_ikTargetLayer:
