@@ -180,51 +180,6 @@ public class CharacterAiming : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, m_turnSpeed * Time.fixedDeltaTime);
     }
 
-    private void HandleControllerCollision(ControllerColliderHit hit)
-    {
-        Debug.Log(hit.gameObject);
-        //throw new System.NotImplementedException();
-    }
-
-    private IEnumerator InterpolatePosition(Transform transformToMove, Vector3 start, Vector3 target, float duration)
-    {
-        float elapsedTime = 0f;
-
-        while (elapsedTime < duration)
-        {
-            // Calculate the interpolation factor (0 to 1)
-            float t = elapsedTime / duration;
-
-            // Interpolate the position using Lerp
-            transformToMove.position = Vector3.Lerp(start, target, t);
-
-            // Increment elapsed time
-            elapsedTime += Time.deltaTime;
-
-            // Wait until the next frame
-            //Debug.Log("Position: " + transformToMove.position);
-            yield return null;
-        }
-
-        // Ensure the final position is set
-        transformToMove.position = target;
-        //Debug.Log(transformToMove.position + " vs: " + controller.transform.position);
-        //Debug.Log("-----------------");
-    }
-
-    // Function to get the capsule properties
-    private void GetControllerCapsuleProperties(out Vector3 top, out Vector3 bottom, out float radius, out Vector3 center, out float height)
-    {
-
-        // Get the center and height of the CharacterController
-        center = controller.bounds.center;
-        height = controller.height;
-        radius = controller.radius;
-
-        // The capsule is aligned along the Y-axis, so calculate the top and bottom points of the capsule
-        top = center + Vector3.up * (height / 2f);
-        bottom = center - Vector3.up * (height / 2f);
-    }
 
     public float m_iKRayOriginOffset = 1f;
     public float m_iKBodyOffset = 1;
