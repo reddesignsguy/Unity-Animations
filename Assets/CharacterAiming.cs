@@ -56,12 +56,13 @@ public class CharacterAiming : MonoBehaviour
 
     void Update()
     {
-        RotateCharacter();
-        MoveCharacter();
+        RotateController();
+        MoveController();
+        MoveCharacterModel();
         AnimateCharacter();
     }
 
-    private void MoveCharacter()
+    private void MoveController()
     {
         Vector2 moveVector = input.awsd;
 
@@ -82,21 +83,42 @@ public class CharacterAiming : MonoBehaviour
             transform.position = previousPos;
         }
 
+        HandleSteppingUp(previousPos);
+        HandleSteppingDown();
+
+        if (controller.velocity.magnitude < 0.01f)
+        {
+            m_state = CharState.Idle;
+        }
+        else if (controller.velocity.y < -1f)
+        {
+            m_state = CharState.Falling;
+        }
+        else
+        {
+            m_state = CharState.Walking;
+        }
+    }
+
+    private void HandleSteppingUp(Vector3 previousPos)
+    {
         bool steppingUp = transform.position.y - previousPos.y > m_stepUpMinimum;
         if (steppingUp)
         {
             m_characterOutOfSyncWithController = true;
             transform.position = previousPos;
         }
+    }
 
+    private void HandleSteppingDown()
+    {
         RaycastHit hit;
-        Vector3 characterBottom = controller.transform.position + controller.center - new Vector3(0,controller.height/2f,0);
+        Vector3 characterBottom = controller.transform.position + controller.center - new Vector3(0, controller.height / 2f, 0);
         Physics.Raycast(characterBottom, Vector3.down, out hit, raycastLen);
 
         bool foundStepBelow = hit.distance < m_maximumStepThreshold;
         Vector3 offset = hit.point - characterBottom;
 
-        
         // Walking down stairs
         if (foundStepBelow && offset.magnitude > 0.1f && m_state != CharState.Falling && controller.velocity.y < 0)
         {
@@ -113,20 +135,11 @@ public class CharacterAiming : MonoBehaviour
                 m_characterOutOfSyncWithController = true;
             }
         }
+    }
 
-        if (controller.velocity.magnitude < 0.01f)
-        {
-            m_state = CharState.Idle;
-        }
-        else if (controller.velocity.y < -1f)
-        {
-            m_state = CharState.Falling;
-        }
-        else
-        {
-            m_state = CharState.Walking;
-        }
-
+    /* Adjusts character based on certain states. By default, the character model follows the controller */
+    private void MoveCharacterModel()
+    {
         if (m_characterOutOfSyncWithController)
         {
             Vector3 targetPos = controller.transform.position;
@@ -162,7 +175,7 @@ public class CharacterAiming : MonoBehaviour
         _animator.SetFloat("Y", animationSpeed);
     }
 
-    private void RotateCharacter()
+    private void RotateController()
     {
         Vector2 movementVector = input.awsd;
         bool tryingToMove = movementVector.magnitude != 0;
