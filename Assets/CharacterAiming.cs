@@ -12,28 +12,40 @@ public enum CharState
 
 public class CharacterAiming : MonoBehaviour
 {
+    // Movement
     [SerializeField] private float m_turnSpeed = 2f;
     [SerializeField] private float inputAcceleration = 6f;
     [SerializeField] private float inputDeceleration = 5f;
     [SerializeField] private float m_maxSpeed = 5f;
-    [SerializeField] private float m_stopUTurningThreshold = 2f;
     [SerializeField] private float m_maximumStepThreshold = 0.5f;
+    [SerializeField] private float m_characterToControllerSyncThreshold = 0.01f;
+    [SerializeField] private float m_characterSyncPercentRate = 0.1f;
+    [SerializeField] private float m_slowCharacterSyncPercentRate = 0.005f;
+    [SerializeField] private float m_stepUpMinimum = 0.2f; // Minimum increase in height to enable height LERPing for going up stairs
+
+    // Ik
+    [SerializeField] public float m_iKRayOriginOffset = 1f;
+    [SerializeField] public float m_iKBodyOffset = 1;
+    [SerializeField] public LayerMask m_ikTargetLayer;
+    [SerializeField] public float m_iKFootDistanceToGround;
+    [SerializeField] private float m_ikHeightBetweenFeet = 0f;
+
+    // Refs
     [SerializeField] private Character character;
     [SerializeField] private InputHandler input;
     [SerializeField] private CinemachineCameraOffset camAngleOffset;
     [SerializeField] private CharacterController controller;
-    private Animator _animator;
+    [SerializeField] public float raycastLen = 5f;
 
-    private Vector3 m_defaultControllerToRootOffset;
+    private CharState m_state = CharState.Walking;
+    private bool m_characterOutOfSyncWithController = false;
+    private Animator _animator;
     private float m_gravity;
     private float m_targetLookAngle = 0;
-
-    private Coroutine m_walkDownStep;
 
     private void Awake()
     {
         _animator = GetComponent<Animator>();
-        m_defaultControllerToRootOffset = _animator.rootPosition - (controller.transform.position);
     }
 
     void Start()
@@ -48,20 +60,6 @@ public class CharacterAiming : MonoBehaviour
         MoveCharacter();
         AnimateCharacter();
     }
-
-    int i = 0;
-    public float raycastLen = 5f;
-    private CharState m_state = CharState.Walking;
-    private bool m_characterOutOfSyncWithController = false;
-    public GameObject root;
-
-    [SerializeField] private float m_characterToControllerSyncThreshold = 0.01f;
-    [SerializeField] private float m_characterSyncPercentRate = 0.1f;
-    [SerializeField] private float m_stepUpMinimum = 0.2f; // Minimum increase in height to enable height LERPing for going up stairs
-    [SerializeField] private float m_slowCharacterSyncPercentRate = 0.005f;
-
-    //private Vector3 m_controllerToCharacterSyncTarget;
-
 
     private void MoveCharacter()
     {
@@ -180,12 +178,6 @@ public class CharacterAiming : MonoBehaviour
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, m_turnSpeed * Time.fixedDeltaTime);
     }
 
-
-    public float m_iKRayOriginOffset = 1f;
-    public float m_iKBodyOffset = 1;
-    public LayerMask m_ikTargetLayer;
-    public float m_iKFootDistanceToGround;
-    private float m_ikHeightBetweenFeet = 0f;
     private void OnAnimatorIK(int layerIndex)
     {
         //Debug.Log("IK Animating");
